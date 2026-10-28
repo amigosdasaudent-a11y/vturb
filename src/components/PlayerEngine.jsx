@@ -7,6 +7,16 @@ const SIZES = { peq: { f: 12, p: '7px 12px' }, med: { f: 15, p: '10px 22px' }, g
 
 function fmtViewers(n) { return n >= 1000 ? `${(n / 1000).toFixed(1).replace('.', ',')}K` : String(n) }
 
+const CHAT_DEMO_MESSAGES = [
+  { name: 'Visitante 01', text: 'Olá, pessoal 👋' },
+  { name: 'Visitante 02', text: 'Estou acompanhando a apresentação.' },
+  { name: 'Visitante 03', text: 'Acabei de entrar.' },
+  { name: 'Visitante 04', text: 'Assistindo pelo celular 📱' },
+  { name: 'Visitante 05', text: 'O vídeo está rodando bem.' },
+  { name: 'Visitante 06', text: 'Obrigado por compartilhar.' },
+  { name: 'Visitante 07', text: 'Acompanhando aqui.' },
+]
+
 export default function PlayerEngine({
   player: p, mode = 'builder', vertical, onToast, onLead, onEvent,
   previewParam = false, forceState, showFeatures = [], className = '',
@@ -21,6 +31,8 @@ export default function PlayerEngine({
   const [unlocked, setUnlocked] = useState(false)
   const [realElapsed, setRealElapsed] = useState(0)
   const [viewers, setViewers] = useState(() => Math.round((Number(p.live.min) + Number(p.live.max)) / 2))
+  const [chatOpen, setChatOpen] = useState(true)
+  const [chatMessages, setChatMessages] = useState(() => CHAT_DEMO_MESSAGES.slice(0, 3))
   const [showLead, setShowLead] = useState(false)
   const [leadDone, setLeadDone] = useState(false)
   const [showExit, setShowExit] = useState(false)
@@ -44,6 +56,7 @@ export default function PlayerEngine({
   const milestones = useRef(new Set())
   const stallRef = useRef({ t: -1, for: 0 })
   const progressSaved = useRef(0)
+  const chatCursor = useRef(3)
 
   const speed = isPublic ? 1 : 6 // no builder o tempo corre 6x para demonstrar CTA/lead
   const log = useCallback((type, extra) => { if (isPublic) onEvent?.(type, extra); else onToast?.(`Evento: ${type}`) }, [isPublic, onEvent, onToast])
@@ -214,6 +227,19 @@ export default function PlayerEngine({
     return () => clearInterval(id)
   }, [p.live.min, p.live.max])
 
+  useEffect(() => {
+    chatCursor.current = 3
+    setChatMessages(CHAT_DEMO_MESSAGES.slice(0, 3))
+    setChatOpen(true)
+    if (!p.live.chatEnabled) return
+    const id = setInterval(() => {
+      const message = CHAT_DEMO_MESSAGES[chatCursor.current % CHAT_DEMO_MESSAGES.length]
+      chatCursor.current += 1
+      setChatMessages(current => [...current, message].slice(-5))
+    }, 9000)
+    return () => clearInterval(id)
+  }, [p.id, p.live.chatEnabled])
+
   // ---------- modal de retomada ----------
   useEffect(() => {
     if (!isPublic || !p.playPause?.pauseModal) return
@@ -293,9 +319,18 @@ export default function PlayerEngine({
   const cdLeft = Math.max(0, Number(p.countdown.duration || 600) - Math.floor(elapsed))
   const cdVisible = p.countdown.enabled && (builder ? feat('countdown') : (elapsed >= Number(p.countdown.appearAfter || 0) && (cdLeft > 0 || p.countdown.onExpire === 'blink')))
   const liveVisible = p.live.enabled && (isPublic || feat('live'))
+  const ctaWindows = Array.isArray(p.cta.windows) ? p.cta.windows : []
+  const ctaInConfiguredWindow = ctaWindows.length
+    ? ctaWindows.some(window => {
+      const start = Number(window.showAt)
+      const end = Number(window.hideAt)
+      return Number.isFinite(start) && Number.isFinite(end) && end > start && time >= start && time < end
+    })
+    : time >= Number(p.cta.time || 0)
   const ctaVisible = p.cta.enabled && (builder
-    ? (feat('cta') || (unlocked && time >= Number(p.cta.time || 0)))
-    : (unlocked && time >= Number(p.cta.time || 0))) && !effLead && !effExit && !effAd && !effPause
+    ? (ctaWindows.length === 0 && feat('cta')) || (unlocked && ctaInConfiguredWindow)
+    : (unlocked && ctaInConfiguredWindow)) && !effLead && !effExit && !effAd && !effPause
+  const chatVisible = Boolean(p.live.chatEnabled) && (isPublic || feat('live'))
   const fakePct = builder && !playing ? 42 : Math.min(100, (time / (duration || 597)) * 100 * Number(p.fakeProgress.speed || 1))
   const currentYoutubeId = p.videoType === 'youtube' ? youtubeId(p.videoUrl) : null
   const thumb = p.posterUrl || (currentYoutubeId ? `https://img.youtube.com/vi/${currentYoutubeId}/maxresdefault.jpg` : null)
@@ -359,6 +394,25 @@ export default function PlayerEngine({
       {/* selos de escassez / live */}
       {Object.entries(badgeGroups).map(([pos, arr]) => (
         <div key={pos} className={`vp-badges pos-${pos}`}>{arr.map(b => <React.Fragment key={b.key}>{b.node}</React.Fragment>)}</div>
+      ))}
+
+      {chatVisible && (chatOpen ? (
+        <aside className="vp-chat-panel" aria-label="Chat demonstrativo">
+          <div className="vp-chat-head">
+            <strong>Chat</strong><span>SIMULAÇÃO</span>
+            <button type="button" aria-label="Fechar chat" onClick={() => setChatOpen(false)}><Icon name="x" size={14} /></button>
+          </div>
+          <div className="vp-chat-messages">
+            {chatMessages.map((message, index) => <div className="vp-chat-message" key={`${index}-${message.name}`}>
+              <b>{message.name}</b><span>{message.text}</span>
+            </div>)}
+          </div>
+          <div className="vp-chat-foot">Mensagens de demonstração</div>
+        </aside>
+      ) : (
+        <button type="button" className="vp-chat-toggle" onClick={() => setChatOpen(true)} aria-label="Abrir chat demonstrativo">
+          <Icon name="users" size={14} /> Chat <span>{chatMessages.length}</span>
+        </button>
       ))}
 
       {/* CTA inteligente */}

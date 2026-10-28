@@ -48,11 +48,11 @@ export function defaultPlayer(over = {}) {
     playPause: { type: 'svg', color: '#7440B6', scale: 1, pauseModal: true, overlay: 'default', modalTitle: 'Continue de onde parou?', modalText: 'Você já assistiu parte deste vídeo. Deseja continuar?' },
     cta: {
       enabled: false, type: 'button', text: 'Saiba mais', icon: 'none', color: '#7440B6', textColor: '#ffffff',
-      url: '', time: 0, position: 'top', size: 'md', radius: 'lg',
+      url: '', time: 0, windows: [], position: 'top', size: 'md', radius: 'lg',
       animation: 'pulse', customImage: '',
     },
     countdown: { enabled: false, duration: 600, appearAfter: 0, text: 'Oferta expira em', position: 'tr', onExpire: 'hide', theme: 'red', bg: '#dc2626', textColor: '#ffffff', size: 'md' },
-    live: { enabled: false, label: 'LIVE', min: 0, max: 0, realVisitors: false, position: 'tr', theme: 'red', bg: '#dc2626', textColor: '#ffffff', blink: '#fef444' },
+    live: { enabled: false, label: 'LIVE', min: 0, max: 0, realVisitors: false, chatEnabled: false, position: 'tr', theme: 'red', bg: '#dc2626', textColor: '#ffffff', blink: '#fef444' },
     ads: [],
     exitIntent: { enabled: false, title: 'Espere! Não vá embora', text: 'Você está prestes a perder uma oportunidade única.', buttonText: 'Quero aproveitar', buttonUrl: '#', once: true, bg: '#111631', buttonBg: '#6c5ce7', buttonTextColor: '#ffffff' },
     lead: { enabled: false, at: 10, buttonText: 'Continuar assistindo', title: 'Receba acesso exclusivo', subtitle: 'Preencha para continuar assistindo', bg: '#2a2a2a', buttonBg: '#7440B6', privacyUrl: '' },

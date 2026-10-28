@@ -164,6 +164,16 @@ export default function Builder({ path }) {
 
 /* ------------------------------------------------------------------ */
 function SectionBody({ id, p, setTop, setKey, vertical, setVertical, setAd, addAd, delAd, uploadFile }) {
+  const setCtaWindows = windows => setTop('cta', { ...p.cta, windows })
+  const ctaWindows = Array.isArray(p.cta.windows) ? p.cta.windows : []
+  const addCtaWindow = () => {
+    const examples = [{ showAt: 60, hideAt: 80 }, { showAt: 200, hideAt: 250 }, { showAt: 400, hideAt: 500 }]
+    const next = examples[ctaWindows.length]
+    const lastWindow = ctaWindows[ctaWindows.length - 1]
+    const start = next?.showAt ?? (Number(lastWindow?.hideAt || 0) + 120)
+    const end = next?.hideAt ?? (start + 50)
+    setCtaWindows([...ctaWindows, { id: uid('cta_window'), showAt: start, hideAt: end }])
+  }
   switch (id) {
     case 'config': return <>
       <Field label="Nome de Identificação"><Input value={p.name} onChange={v => setTop('name', v)} placeholder="Ex: Player Página de Vendas" /></Field>
@@ -239,7 +249,22 @@ function SectionBody({ id, p, setTop, setKey, vertical, setVertical, setAd, addA
       <Field label="Ícone"><div className="icon-picker">{CTA_ICONS.map((ic, i) => <button key={i} title={ic} className={p.cta.icon === ic ? 'active' : ''} onClick={() => setKey('cta', 'icon', ic)}>{ic === 'none' ? <Icon name="x" size={15} /> : <Icon name={ic} size={16} />}</button>)}</div></Field>
       <div className="field-row"><ColorField label="Cor do Botão" value={p.cta.color} onChange={v => setKey('cta', 'color', v)} /><ColorField label="Cor do Texto" value={p.cta.textColor} onChange={v => setKey('cta', 'textColor', v)} /></div>
       <Field label="URL de Destino"><Input value={p.cta.url} onChange={v => setKey('cta', 'url', v)} placeholder="https://meusite.com/comprar" /></Field>
-      <Field label="Tempo de Aparição (segundos)" hint="0 = imediato ao iniciar o vídeo"><Input type="number" min="0" value={p.cta.time} onChange={v => setKey('cta', 'time', Number(v))} /></Field>
+      {ctaWindows.length === 0 ? (
+        <Field label="Tempo de Aparição (segundos)" hint="0 = imediato. Adicione períodos abaixo para programar aparições e sumiços."><Input type="number" min="0" value={p.cta.time} onChange={v => setKey('cta', 'time', Number(v))} /></Field>
+      ) : (
+        <div className="cta-windows-editor">
+          <div className="sub-label">PERÍODOS DO CTA (SEGUNDOS DO VÍDEO)</div>
+          {ctaWindows.map((window, index) => (
+            <div className="cta-window-row" key={window.id || index}>
+              <Field label={`Aparece ${index + 1} em`}><Input type="number" min="0" value={window.showAt ?? 0} onChange={v => setCtaWindows(ctaWindows.map((item, i) => i === index ? { ...item, showAt: Number(v) } : item))} /></Field>
+              <Field label="Some em"><Input type="number" min="0" value={window.hideAt ?? 0} onChange={v => setCtaWindows(ctaWindows.map((item, i) => i === index ? { ...item, hideAt: Number(v) } : item))} /></Field>
+              <button type="button" className="cta-window-remove" title="Remover período" onClick={() => setCtaWindows(ctaWindows.filter((_, i) => i !== index))}>×</button>
+            </div>
+          ))}
+          <div className="mini-info"><Icon name="clock" size={14} /> Cada período vale até o segundo “Some em”; se criar períodos, o campo antigo de aparição única deixa de ser usado.</div>
+        </div>
+      )}
+      <Btn type="button" variant="outline" size="sm" icon="plus" className="full" onClick={addCtaWindow}>Adicionar período de aparição</Btn>
       <Field label="Posição do Botão"><Segmented size="sm" value={p.cta.position} onChange={v => setKey('cta', 'position', v)} options={[{ value: 'top', label: 'TOPO' }, { value: 'middle', label: 'MEIO' }, { value: 'bottom', label: 'RODAPÉ' }]} /></Field>
       <Field label="Tamanho do Botão"><Segmented size="sm" value={p.cta.size} onChange={v => setKey('cta', 'size', v)} options={[{ value: 'peq', label: 'PEQ.' }, { value: 'med', label: 'MÉD.' }, { value: 'grd', label: 'GRD.' }, { value: 'pers', label: 'PERS.' }]} /></Field>
       <Field label="Arredondamento do Botão"><Segmented size="sm" value={p.cta.radius} onChange={v => setKey('cta', 'radius', v)} options={[{ value: 'md', label: '10PX' }, { value: 'sm', label: 'SM' }, { value: 'lg', label: 'LG' }, { value: 'perso', label: 'PERSO' }]} /></Field>
@@ -263,6 +288,7 @@ function SectionBody({ id, p, setTop, setKey, vertical, setVertical, setAd, addA
       <Field label="Texto do indicador"><Input value={p.live.label} onChange={v => setKey('live', 'label', v)} placeholder="LIVE" /></Field>
       <div className="field-row"><Field label="Min. Espectadores"><Input type="number" min="1" value={p.live.min} onChange={v => setKey('live', 'min', Number(v))} /></Field><Field label="Max. Espectadores"><Input type="number" min="1" value={p.live.max} onChange={v => setKey('live', 'max', Number(v))} /></Field></div>
       <Toggle label="Usar Visitantes Reais" hint="Baseado no tráfego ativo de carregamento do player nos últimos 5 minutos" checked={p.live.realVisitors} onChange={v => setKey('live', 'realVisitors', v)} small />
+      <Toggle label="Exibir chat demonstrativo" hint="Abre um painel lateral com mensagens de exemplo, identificado claramente como simulação." checked={Boolean(p.live.chatEnabled)} onChange={v => setKey('live', 'chatEnabled', v)} />
       <Field label="Posição no Player"><PositionPicker value={p.live.position} onChange={v => setKey('live', 'position', v)} options={POS_OPTS} /></Field>
       <Field label="Presets do Tema"><div className="preset-row">{['Primary','Secondary','Destructive','Red'].map(t => <button key={t} className={p.live.theme === t.toLowerCase() ? 'active' : ''} onClick={() => { const map = { primary: '#7440B6', secondary: '#111631', destructive: '#7f1d1d', red: '#dc2626' }; setKey('live', 'theme', t.toLowerCase()); setKey('live', 'bg', map[t.toLowerCase()]) }}>{t}</button>)}</div></Field>
       <div className="field-row"><ColorField label="Fundo" value={p.live.bg} onChange={v => setKey('live', 'bg', v)} /><ColorField label="Texto" value={p.live.textColor} onChange={v => setKey('live', 'textColor', v)} /></div>
