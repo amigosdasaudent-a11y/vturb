@@ -1,0 +1,11 @@
+node_modules/
+dist/
+.smoke*.mjs
+.shots*.mjs
+.flow.mjs
+.diag.mjs
+.shots/
+*.local
+.env
+.env.*
+!.env.example
