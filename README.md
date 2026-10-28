@@ -261,5 +261,3 @@ veturb/
 - Edge Functions `track-player` e `capture-lead` responderam e retornaram 404 esperado ao receberem IDs de player inexistentes; sem dados de conta de teste foram criados.
 - Banco Supabase consultado: `veturb_state`, `veturb_public_players`, `veturb_events` e `veturb_leads` estavam vazios no momento da consulta.
 - Fluxo de cobrança não foi testado nem está ativo.
-#   v t u r b  
- 
