@@ -112,7 +112,7 @@ export default function Builder({ path }) {
         {/* ---------- COLUNA CENTRAL: PREVIEW ---------- */}
         <div className="builder-center">
           <div className="preview-head"><Icon name="eye" size={15} /> Pré-visualização em tempo real <Badge tone="green">Ao vivo</Badge></div>
-          <div className={`preview-stage ${vertical ? 'is-vertical' : ''}`}>
+          <div className={`preview-stage ${vertical ? 'is-vertical' : ''} ${p.live.chatEnabled ? 'has-chat' : ''}`}>
             <PlayerEngine key={p.id + (vertical ? 'v' : 'h')} player={p} mode="builder" vertical={vertical}
               forceState={open} showFeatures={visited} onToast={msg => showToast(msg)} />
           </div>

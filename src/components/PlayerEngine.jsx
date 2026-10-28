@@ -361,8 +361,9 @@ export default function PlayerEngine({
   )
 
   return (
-    <div className={`vp vp-${vert ? 'vertical' : 'horizontal'} ${unlocked ? 'vp-unlocked' : ''} ${className}`}
-      style={{ '--vp-accent': p.appearance.accent, '--vp-controls': p.appearance.controls, '--vp-fake-color': p.appearance.accent }}>
+    <div className={`vp-layout vp-layout-${vert ? 'vertical' : 'horizontal'} ${chatVisible ? 'vp-layout-with-chat' : ''} ${className}`}>
+      <div className={`vp vp-${vert ? 'vertical' : 'horizontal'} ${unlocked ? 'vp-unlocked' : ''}`}
+        style={{ '--vp-accent': p.appearance.accent, '--vp-controls': p.appearance.controls, '--vp-fake-color': p.appearance.accent }}>
       {/* mídia */}
       {youtubeId(p.videoUrl) && <div className={`vp-yt ${ytFailed ? 'hidden' : ''}`}><div id={'vt-yt-' + p.id} /></div>}
       {mediaMode === 'html5' && videoSource && (
@@ -394,25 +395,6 @@ export default function PlayerEngine({
       {/* selos de escassez / live */}
       {Object.entries(badgeGroups).map(([pos, arr]) => (
         <div key={pos} className={`vp-badges pos-${pos}`}>{arr.map(b => <React.Fragment key={b.key}>{b.node}</React.Fragment>)}</div>
-      ))}
-
-      {chatVisible && (chatOpen ? (
-        <aside className="vp-chat-panel" aria-label="Chat demonstrativo">
-          <div className="vp-chat-head">
-            <strong>Chat</strong><span>SIMULAÇÃO</span>
-            <button type="button" aria-label="Fechar chat" onClick={() => setChatOpen(false)}><Icon name="x" size={14} /></button>
-          </div>
-          <div className="vp-chat-messages">
-            {chatMessages.map((message, index) => <div className="vp-chat-message" key={`${index}-${message.name}`}>
-              <b>{message.name}</b><span>{message.text}</span>
-            </div>)}
-          </div>
-          <div className="vp-chat-foot">Mensagens de demonstração</div>
-        </aside>
-      ) : (
-        <button type="button" className="vp-chat-toggle" onClick={() => setChatOpen(true)} aria-label="Abrir chat demonstrativo">
-          <Icon name="users" size={14} /> Chat <span>{chatMessages.length}</span>
-        </button>
       ))}
 
       {/* CTA inteligente */}
@@ -521,6 +503,25 @@ export default function PlayerEngine({
       {builder && mediaMode === 'sim' && !unlocked && !effLead && !effExit && !effPause && !effAd && (
         <button className="vp-sim-hint" onClick={() => playMedia()}>▶ Simular reprodução</button>
       )}
+      </div>
+      {chatVisible && (chatOpen ? (
+        <aside className="vp-chat-panel" aria-label="Chat demonstrativo">
+          <div className="vp-chat-head">
+            <strong>Chat</strong><span>SIMULAÇÃO</span>
+            <button type="button" aria-label="Fechar chat" onClick={() => setChatOpen(false)}><Icon name="x" size={14} /></button>
+          </div>
+          <div className="vp-chat-messages">
+            {chatMessages.map((message, index) => <div className="vp-chat-message" key={`${index}-${message.name}`}>
+              <b>{message.name}</b><span>{message.text}</span>
+            </div>)}
+          </div>
+          <div className="vp-chat-foot">Mensagens de demonstração</div>
+        </aside>
+      ) : (
+        <button type="button" className="vp-chat-toggle" onClick={() => setChatOpen(true)} aria-label="Abrir chat demonstrativo">
+          <Icon name="users" size={14} /> Chat <span>{chatMessages.length}</span>
+        </button>
+      ))}
     </div>
   )
 }
